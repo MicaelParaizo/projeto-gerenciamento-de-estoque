@@ -5,6 +5,8 @@ import os
 import sqlite3
 from tkinter import END
 
+thrthtrhhth
+
 item_selecionado= None
 #-----------------------------------------------------------------import imagem (lixeira)----------------------------------------------------------------------------------
 file_path=os.path.dirname(os.path.realpath(__file__))
