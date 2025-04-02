@@ -5,7 +5,7 @@ import os
 import sqlite3
 from tkinter import END
 
-thrthtrhhth
+#teste sla akakakka
 
 item_selecionado= None
 #-----------------------------------------------------------------import imagem (lixeira)----------------------------------------------------------------------------------
