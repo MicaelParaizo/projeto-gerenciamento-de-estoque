@@ -21,6 +21,7 @@ def criar_banco():
     conexao.commit()
     conexao.close()
 
+# funçao de salvar
 def salvar_dados():
     conexao=sqlite3.connect("projeto.db")
     entrada_nome = entrada_nome_produto_frame_cadastro.get()
