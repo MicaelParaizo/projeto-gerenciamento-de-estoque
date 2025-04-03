@@ -5,8 +5,6 @@ import os
 import sqlite3
 from tkinter import END
 
-#teste sla akakakka
-
 item_selecionado= None
 #-----------------------------------------------------------------import imagem (lixeira)----------------------------------------------------------------------------------
 file_path=os.path.dirname(os.path.realpath(__file__))
@@ -21,7 +19,6 @@ def criar_banco():
     conexao.commit()
     conexao.close()
 
-# funçao de salvar
 def salvar_dados():
     conexao=sqlite3.connect("projeto.db")
     entrada_nome = entrada_nome_produto_frame_cadastro.get()
@@ -142,12 +139,12 @@ def relatorio_entrada():
 #------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def editar_banco_dados():
-    global items, check_var
+    global items, check_var1
     conexao = sqlite3.connect("projeto.db")
     terminal_sql = conexao.cursor()
     terminal_sql.execute(f"SELECT nome FROM tabela")
     items = terminal_sql.fetchall()
-    check_var = customtkinter.StringVar(value="on")
+    check_var1 = customtkinter.StringVar(value="on")
     for item in scrollable_frame_editar.winfo_children():
         item.destroy()
  
@@ -159,8 +156,8 @@ def editar_banco_dados():
  
         for item in itens:
             
-            box = customtkinter.CTkCheckBox(scrollable_frame_editar, text=item, command=lambda: seleciona_item() if
-            check_var.get() else None, variable=check_var, onvalue=item, offvalue="")
+            box = customtkinter.CTkCheckBox(scrollable_frame_editar, text=item, command=lambda: seleciona_item_editar() if
+            check_var1.get() else None, variable=check_var1, onvalue=item, offvalue="")
             box.pack(pady=5, padx=5, fill="x")
     conexao.close()
 #------------------------------------------------------------------------------------------------------------------------------------------------------------ 
@@ -181,7 +178,7 @@ def saida_banco_dados():
         itens.append(nome)
         for item in itens:
             
-            box_saida = customtkinter.CTkCheckBox(scrollable_buscar_produto_frame_saida, text=item, command=lambda: seleciona_item() if
+            box_saida = customtkinter.CTkCheckBox(scrollable_buscar_produto_frame_saida, text=item, command=lambda: seleciona_item_editar() if
             check_var.get() else None, variable=check_var, onvalue=item, offvalue="")
             box_saida.pack(pady=5, padx=5, fill="x")
     conexao.close()
@@ -203,14 +200,32 @@ def entrada_banco_dados():
         itens.append(nome)
         for item in itens:
         
-            box_entrada = customtkinter.CTkCheckBox(scrollable_buscar_produto_frame_entrada, text=item, command=lambda: seleciona_item()
+            box_entrada = customtkinter.CTkCheckBox(scrollable_buscar_produto_frame_entrada, text=item, command=lambda: seleciona_item_editar()
             if check_var.get() else None, variable=check_var, onvalue=item, offvalue="")
             box_entrada.pack(pady=5, padx=5, fill="x")
  
     conexao.close()
-#------------------------------------------------------------------------------------------------------------------------------------------------------------ 
-def seleciona_item():
+#-------------------------------------------------------------selecionar checkbox item da tela editar----------------------------------------------------------------------------------------------- 
+nome_antigo_editar=None
+
+def seleciona_item_entrada():
+    global nome_antigo_editar
     valor_checkbox = check_var.get()
+ 
+    conexao = sqlite3.connect("projeto.db")
+    terminal_sql = conexao.cursor()
+    terminal_sql.execute(f"SELECT * FROM tabela WHERE nome = '{valor_checkbox}'")
+    receber_dados_produtos = terminal_sql.fetchall()
+    entrada_preenchida_produto_frame_entrada.delete(0, 'end')
+ 
+    entrada_preenchida_produto_frame_entrada.insert(0, receber_dados_produtos[0][0])
+
+    nome_antigo_editar = receber_dados_produtos[0][0]
+
+
+def seleciona_item_editar():
+    global nome_antigo_editar
+    valor_checkbox = check_var1.get()
  
     conexao = sqlite3.connect("projeto.db")
     terminal_sql = conexao.cursor()
@@ -222,8 +237,10 @@ def seleciona_item():
  
     entrada_nome_produto_frame_editar.insert(0, receber_dados_produtos[0][0])
     entrada_preco_frame_editar.insert(0, receber_dados_produtos[0][1])
-    textbox_descricao_frame_editar.insert(0.0, receber_dados_produtos[0][2])
-#------------------------------------------------------------------------------------------------------------------------------------------------------------
+    textbox_descricao_frame_editar.insert("0.0", receber_dados_produtos[0][2])
+
+    nome_antigo_editar = receber_dados_produtos[0][0]
+#------------------------------------------------------funcionalidades dos 3 botes da tela editar------------------------------------------------------------------------------------------------------
 def excluir (valor_checkbox):
     conexao = sqlite3.connect("projeto.db")
     terminal_sql = conexao.cursor()
@@ -232,20 +249,27 @@ def excluir (valor_checkbox):
     conexao.close()
     entrada_nome_produto_frame_editar.delete(0,"end")
     entrada_preco_frame_editar.delete(0,"end")
-    textbox_descricao_frame_editar.delete(0.0,"end")
+    textbox_descricao_frame_editar.delete("1.0","end")
     editar_banco_dados()
 
-def salvar_edicao(nome_produto,preco_produto,descricao,valor_checkbox):
+def salvar_edicao(nome_produto,preco_produto,descricao):
+    global nome_antigo_editar
     conexao = sqlite3.connect("projeto.db")
     terminal_sql = conexao.cursor()
-    terminal_sql.execute(f"UPDATE tabela SET nome = '{nome_produto}', preco = '{preco_produto}', desc '{descricao}' WHERE nome = '{valor_checkbox}'")
+    terminal_sql.execute(f"UPDATE tabela SET nome ='{nome_produto}', preco ='{preco_produto}', desc ='{descricao}' WHERE nome = '{nome_antigo_editar}'")
     conexao.commit()
     conexao.close()
     entrada_nome_produto_frame_editar.delete(0,"end")
     entrada_preco_frame_editar.delete(0,"end")
-    textbox_descricao_frame_editar.delete(0.0,"end")
+    textbox_descricao_frame_editar.delete("1.0","end")
     editar_banco_dados()
 
+def cancelar_edicao():
+    entrada_nome_produto_frame_editar.delete(0,"end")
+    entrada_preco_frame_editar.delete(0,"end")
+    textbox_descricao_frame_editar.delete("1.0","end")
+#--------------------------------------------------------------------------------------------------------
+#---------------------------------------------funcionalidades da tela entrada----------------------------------------------------
 #--------------------------------------------------------------------------------------------------------
 
 
@@ -418,13 +442,13 @@ entrada_preco_frame_editar.grid(row = 3, column = 1, padx = 5, pady=0, sticky ="
 textbox_descricao_frame_editar=customtkinter.CTkTextbox(frame_editar,  width=300, height=80, border_color= '#0070ff', border_width=2)
 textbox_descricao_frame_editar.grid(row = 4, column = 1, padx = 5, pady=0, sticky ="sw")
 
-botao_salvar_frame_editar = customtkinter.CTkButton(frame_editar,width=90,  corner_radius= 20, text='Salvar',fg_color="#0070ff",command=lambda: salvar_edicao(entrada_nome_produto_frame_editar.get(),entrada_preco_frame_editar.get(),textbox_descricao_frame_editar.get()))
+botao_salvar_frame_editar = customtkinter.CTkButton(frame_editar,width=90,  corner_radius= 20, text='Salvar',fg_color="#0070ff",command=lambda: salvar_edicao(entrada_nome_produto_frame_editar.get(),entrada_preco_frame_editar.get(),textbox_descricao_frame_editar.get('1.0', 'end')))
 botao_salvar_frame_editar.grid(row = 5, column = 1, padx = 5, pady=0, sticky ="e")
 
 botao_excluir_frame_editar = customtkinter.CTkButton(frame_editar,width=90,  corner_radius= 20, text='Excluir',fg_color="#ff0000", command=lambda: excluir(entrada_nome_produto_frame_editar.get()))
 botao_excluir_frame_editar.grid(row = 5, column = 1, padx = 5, pady=0, sticky ="w")
 
-botao_cancelar_frame_editar = customtkinter.CTkButton(frame_editar,width=90,  corner_radius= 20, text='Cancelar',fg_color="#0070ff")
+botao_cancelar_frame_editar = customtkinter.CTkButton(frame_editar,width=90,  corner_radius= 20, text='Cancelar',fg_color="#0070ff", command=cancelar_edicao)
 botao_cancelar_frame_editar.grid(row = 5, column = 1, padx = 5, pady=0)
 #----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -443,7 +467,7 @@ titulo_frame_saida.grid(row = 0, column = 0, padx = 5, pady=5,columnspan=4)
 entrada_buscar_produto_frame_saida=customtkinter.CTkEntry(frame_saida, placeholder_text="Buscar produto:", width=223, border_color= '#0070ff', border_width=2) 
 entrada_buscar_produto_frame_saida.grid(row = 3, column = 0, padx = 30, pady=5,sticky="w")
 
-entrada_preenchida_produto_frame_saida=customtkinter.CTkEntry(frame_saida, placeholder_text="Buscar produto:", width=223, border_color= '#0070ff', border_width=2, state="disabled")
+entrada_preenchida_produto_frame_saida=customtkinter.CTkEntry(frame_saida, placeholder_text="Buscar produto:", width=223, border_color= '#0070ff', border_width=2)
 entrada_preenchida_produto_frame_saida.grid(row = 2, column = 1, padx = 30, pady=5, sticky ="w")
 
 entrada_quantidade_frame_saida=customtkinter.CTkEntry(frame_saida, placeholder_text="Quantidade:", width=80, border_color= '#0070ff', border_width=2) 
@@ -478,20 +502,23 @@ titulo_entrada_frame_entrada.grid(row = 0, column = 0, padx = 5, pady=5,columnsp
 entrada_buscar_produto_frame_entrada=customtkinter.CTkEntry(frame_entrada, placeholder_text="Buscar produto:", width=223, border_color= '#0070ff', border_width=2) 
 entrada_buscar_produto_frame_entrada.grid(row = 3, column = 0, padx = 30, pady=5,sticky="w")
 
-entrada_preenchida_produto_frame_entrada=customtkinter.CTkEntry(frame_entrada, placeholder_text="Buscar produto:", width=223, border_color= '#0070ff', border_width=2, state="disabled")
-entrada_preenchida_produto_frame_entrada.grid(row = 2, column = 1, padx = 30, pady=5, sticky ="w")
+entrada_preenchida_produto_frame_entrada=customtkinter.CTkEntry(frame_entrada, placeholder_text="produto:", width=130, border_color= '#0070ff', border_width=2)
+entrada_preenchida_produto_frame_entrada.grid(row = 2, column = 1, padx = 10, pady=5, sticky ="w")
+
+entrada_preenchida_quantidade_frame_entrada=customtkinter.CTkEntry(frame_entrada, placeholder_text="qntd:", width=90, border_color= '#0070ff', border_width=2)
+entrada_preenchida_quantidade_frame_entrada.grid(row = 2, column = 1, padx = 10, pady=5, sticky ="e")
 
 entrada_quantidade_frame_entrada=customtkinter.CTkEntry(frame_entrada, placeholder_text="Quantidade:", width=80, border_color= '#0070ff', border_width=2) 
-entrada_quantidade_frame_entrada.grid(row = 3, column = 1, padx = 30, pady=5, sticky ="w")
+entrada_quantidade_frame_entrada.grid(row = 3, column = 1, padx = 10, pady=5, sticky ="w")
 
 botao_adicionar_produto_frame_entrada= customtkinter.CTkButton(frame_entrada, text="Adicionar produto" ,width=90,  corner_radius= 20,fg_color="#0070ff", command=adicionar_item)
-botao_adicionar_produto_frame_entrada.grid(row = 3, column = 1, padx = 30, pady=5,sticky="e")
+botao_adicionar_produto_frame_entrada.grid(row = 3, column = 1, padx = 10, pady=5,sticky="e")
 
 botao_salvar_frame_entrada= customtkinter.CTkButton(frame_entrada, text="Salvar" ,width=90,  corner_radius= 20,fg_color="#0070ff")
-botao_salvar_frame_entrada.grid(row = 5, column = 1, padx = 30, pady=5,sticky="e")
+botao_salvar_frame_entrada.grid(row = 5, column = 1, padx = 10, pady=5,sticky="e")
 
 botao_cancelar_frame_entrada= customtkinter.CTkButton(frame_entrada, text="Cancelar" ,width=90,  corner_radius= 20,fg_color="#0070ff")
-botao_cancelar_frame_entrada.grid(row = 5, column = 1, padx = 30, pady=5,sticky="w")
+botao_cancelar_frame_entrada.grid(row = 5, column = 1, padx = 10, pady=5,sticky="w")
 
 scrollable_adicionar_frame_entrada = customtkinter.CTkScrollableFrame(frame_entrada)
 scrollable_adicionar_frame_entrada.grid(pady=5, padx=10,row=4,column=1)
